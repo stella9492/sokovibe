@@ -1,0 +1,492 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SokoVibe — Multi-Category Marketplace</title>
+  <style>
+    :root {
+      --primary: #0f766e;
+      --primary-dark: #115e59;
+      --accent: #f59e0b;
+      --bg: #f8fafc;
+      --card: #ffffff;
+      --text: #1e293b;
+      --muted: #64748b;
+      --border: #e2e8f0;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+    body { background: var(--bg); color: var(--text); }
+
+    /* HEADER */
+    header {
+      background: var(--primary);
+      color: white;
+      padding: 1rem 2rem;
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      align-items: center;
+      gap: 1rem;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+    .logo { font-size: 1.5rem; font-weight: 800; letter-spacing: -0.5px; }
+    .logo span { color: var(--accent); }
+
+    .search-bar { flex: 1; max-width: 450px; display: flex; }
+    .search-bar input {
+      width: 100%; padding: 0.6rem 1rem; border: none; border-radius: 6px; outline: none; font-size: 0.95rem;
+    }
+
+    .nav-actions { display: flex; gap: 0.75rem; align-items: center; }
+    .btn {
+      padding: 0.6rem 1rem; border: none; border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 0.9rem; transition: 0.2s;
+    }
+    .btn-light { background: rgba(255,255,255,0.15); color: white; }
+    .btn-light:hover, .btn-light.active { background: white; color: var(--primary); }
+    .btn-accent { background: var(--accent); color: #000; }
+    .btn-primary { background: var(--primary); color: white; width: 100%; }
+    .btn-primary:hover { background: var(--primary-dark); }
+
+    /* MAIN LAYOUT */
+    .container { max-width: 1200px; margin: 1.5rem auto; padding: 0 1rem; }
+
+    /* CLASS & TYPE FILTER BAR */
+    .filter-panel {
+      background: var(--card); padding: 1.25rem; border-radius: 10px; border: 1px solid var(--border); margin-bottom: 1.5rem;
+    }
+    .filter-label { font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.5px; color: var(--muted); font-weight: 700; margin-bottom: 0.5rem; }
+    .pill-row { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 1rem; }
+    .pill-row:last-child { margin-bottom: 0; }
+    .pill {
+      padding: 0.45rem 0.9rem; border-radius: 20px; border: 1px solid var(--border); background: var(--bg);
+      cursor: pointer; font-size: 0.88rem; font-weight: 500; transition: 0.15s;
+    }
+    .pill:hover { border-color: var(--primary); }
+    .pill.active { background: var(--primary); color: white; border-color: var(--primary); }
+    .pill.type-pill.active { background: var(--accent); color: #000; border-color: var(--accent); font-weight: 700; }
+
+    /* PRODUCT GRID */
+    .grid {
+      display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 1.25rem;
+    }
+    .card {
+      background: var(--card); border: 1px solid var(--border); border-radius: 10px; overflow: hidden;
+      display: flex; flex-direction: column; justify-content: space-between; transition: transform 0.15s;
+    }
+    .card:hover { transform: translateY(-3px); box-shadow: 0 6px 16px rgba(0,0,0,0.06); }
+    .card-img {
+      height: 200px; background: #ffffff; border-bottom: 1px solid var(--border); padding: 0.5rem; overflow: hidden;
+    }
+    .card-img img {
+      width: 100%; height: 100%; object-fit: contain; display: block;
+    }
+    .card-body { padding: 1rem; flex: 1; display: flex; flex-direction: column; }
+    .badges { display: flex; gap: 0.4rem; margin-bottom: 0.5rem; flex-wrap: wrap; }
+    .badge { font-size: 0.72rem; padding: 0.2rem 0.5rem; border-radius: 4px; background: #f1f5f9; color: var(--muted); font-weight: 600; }
+    .card-title { font-size: 1.05rem; font-weight: 700; margin-bottom: 0.3rem; }
+    .seller-tag { font-size: 0.8rem; color: var(--muted); margin-bottom: 0.75rem; }
+    .price { font-size: 1.15rem; font-weight: 800; color: var(--primary); margin-top: auto; margin-bottom: 0.75rem; }
+
+    /* SELLER PORTAL & CART DRAWER */
+    .hidden { display: none !important; }
+    .seller-box {
+      max-width: 550px; margin: 0 auto; background: var(--card); padding: 2rem; border-radius: 10px; border: 1px solid var(--border);
+    }
+    .form-group { margin-bottom: 1rem; }
+    .form-group label { display: block; font-weight: 600; margin-bottom: 0.4rem; font-size: 0.9rem; }
+    .form-group input, .form-group select {
+      width: 100%; padding: 0.65rem; border: 1px solid var(--border); border-radius: 6px; font-size: 0.95rem;
+    }
+
+    /* CART MODAL */
+    .modal-backdrop {
+      position: fixed; inset: 0; background: rgba(0,0,0,0.5); display: flex; justify-content: flex-end; z-index: 200;
+    }
+    .cart-drawer {
+      width: 100%; max-width: 380px; background: white; height: 100%; padding: 1.5rem; display: flex; flex-direction: column;
+    }
+    .cart-items { flex: 1; overflow-y: auto; margin: 1rem 0; }
+    .cart-item {
+      display: flex; justify-content: space-between; align-items: center; padding: 0.75rem 0; border-bottom: 1px solid var(--border);
+    }
+    .cart-footer { border-top: 2px solid var(--border); padding-top: 1rem; }
+  </style>
+</head>
+<body>
+
+  <!-- TOP NAVIGATION -->
+  <header>
+    <div class="logo">Soko<span>Vibe</span></div>
+        <div class="search-bar">
+      <input type="text" id="searchInput" placeholder="Search any product, class, or seller..." onkeyup="renderProducts()" />
+    </div>
+    <div class="nav-actions">
+      <button class="btn btn-light active" id="btnBuyerView" onclick="switchView('buyer')">Shop Marketplace</button>
+      <button class="btn btn-light" id="btnSellerView" onclick="switchView('seller')">+ Seller Portal</button>
+      <button class="btn btn-accent" onclick="toggleCart(true)">Cart (<span id="cartCount">0</span>)</button>
+    </div>
+  </header>
+
+  <!-- BUYER VIEW -->
+  <main class="container" id="buyerView">
+    <!-- CLASS & TYPE SUBDIVISION FILTERS -->
+    <section class="filter-panel">
+      <div class="filter-label">1. Select Class (Department)</div>
+      <div class="pill-row" id="classPills"></div>
+
+      <div class="filter-label">2. Select Type (Sub-category)</div>
+      <div class="pill-row" id="typePills"></div>
+    </section>
+
+    <!-- PRODUCT LISTINGS -->
+    <section class="grid" id="productGrid"></section>
+  </main>
+
+  <!-- SELLER VIEW (ZERO-INVENTORY UPLOAD PORTAL) -->
+  <main class="container hidden" id="sellerView">
+    <div class="seller-box">
+      <h2 style="margin-bottom: 0.5rem;">List a Product on SokoVibe</h2>
+      <p style="color: var(--muted); font-size: 0.9rem; margin-bottom: 1.5rem;">
+        Sellers upload their own stock directly into your Class & Type structure.
+      </p>
+
+      <form onsubmit="addProduct(event)">
+        <div class="form-group">
+          <label>Seller / Shop Name</label>
+          <input type="text" id="pSeller" placeholder="e.g., Mama Njeri Fresh Mart" required />
+        </div>
+    <div class="form-group">
+          <label>Seller WhatsApp Number (Start with 254...)</label>
+          <input type="tel" id="pPhone" placeholder="e.g., 254712345678" pattern="[0-9]{10,15}" required />
+        </div>
+        <div class="form-group">
+          <label>Product Name</label>
+          <input type="text" id="pName" placeholder="e.g., Samsung Galaxy A15" required />
+        </div>
+        <div class="form-group">
+          <label>Class (Main Department)</label>
+          <select id="pClass" onchange="populateFormTypes()"></select>
+        </div>
+        <div class="form-group">
+          <label>Type (Sub-Category)</label>
+          <select id="pType"></select>
+        </div>
+        <div class="form-group">
+          <label>Price (KES)</label>
+          <input type="number" id="pPrice" placeholder="e.g., 18500" min="1" required />
+        </div>
+        <div class="form-group">
+          <label>Product Photo (Choose from Phone/PC)</label>
+          <input type="file" id="pImageFile" accept="image/*" required />
+        </div>
+        <button type="submit" class="btn btn-primary">Publish to Marketplace</button>
+      </form>
+    </div>
+  </main>
+
+  <!-- SHOPPING CART DRAWER -->
+  <div class="modal-backdrop hidden" id="cartModal" onclick="if(event.target===this) toggleCart(false)">
+    <div class="cart-drawer">
+      <div style="display:flex; justify-content:space-between; align-items:center;">
+        <h2>Your Basket</h2>
+        <button class="btn" onclick="toggleCart(false)">✕</button>
+      </div>
+      <div class="cart-items" id="cartItems"></div>
+      <div class="cart-footer">
+        <div style="display:flex; justify-content:space-between; font-weight:800; font-size:1.1rem; margin-bottom:0.75rem;">
+          <span>Total:</span>
+          <span id="cartTotal">KES 0</span>
+        </div>
+
+        <div id="checkoutForm">
+          <div class="form-group" style="margin-bottom:0.5rem;">
+            <input type="text" id="buyerName" placeholder="Your Full Name" required />
+          </div>
+          <div class="form-group" style="margin-bottom:0.5rem;">
+            <input type="tel" id="buyerPhone" placeholder="Your Phone (e.g. 0712345678)" required />
+          </div>
+          <div class="form-group" style="margin-bottom:0.75rem;">
+            <input type="text" id="buyerLocation" placeholder="Delivery Location (e.g. Westlands, Nairobi)" required />
+          </div>
+          <button class="btn btn-primary" onclick="checkout()">Confirm Order & Connect Sellers</button>
+        </div>
+
+        <div id="sellerOrderLinks" class="hidden" style="margin-top:0.5rem;"></div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // ==========================================
+    // 1. YOUR CLASS & TYPE CATEGORY STRUCTURE
+    // ==========================================
+    const categories = {
+      "Electronics": ["Phones", "Laptops", "Audio & TV", "Accessories"],
+      "Groceries": ["Fresh Produce", "Grains & Flour", "Dairy & Eggs", "Beverages"],
+      "Fashion": ["Men's Wear", "Women's Wear", "Shoes", "Bags & Watches"],
+      "Home & Living": ["Kitchen", "Furniture", "Bedding", "Cleaning"]
+    };
+
+    // ==========================================
+    // 2. SAMPLE SELLER LISTINGS (REAL IMAGES)
+    // ==========================================
+    let products = [
+      { id: 1, name: "Redmi Note 13", class: "Electronics", type: "Phones", price: 22500, seller: "Kilimani Gadgets", image: "https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?w=500&q=80" },
+      { id: 2, name: "Organic Hass Avocados (1kg)", class: "Groceries", type: "Fresh Produce", price: 250, seller: "Wakulima Fresh", image: "https://images.unsplash.com/photo-1523049673857-eb18f1d7b578?w=500&q=80" },
+      { id: 3, name: "Men's Running Sneakers", class: "Fashion", type: "Shoes", price: 3200, seller: "Nairobi Kicks", image: "https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=500&q=80" },
+      { id: 4, name: "Non-Stick Sufuria Set (4 Pcs)", class: "Home & Living", type: "Kitchen", price: 4500, seller: "Utawala Homeware", image: "https://images.unsplash.com/photo-1584990347449-a2d4c2c044c9?w=500&q=80" },
+      { id: 5, name: "HP EliteBook 840 G6", class: "Electronics", type: "Laptops", price: 38000, seller: "CBD Tech Hub", image: "https://images.unsplash.com/photo-1496181133206-80ce9b88a853?w=500&q=80" },
+      { id: 6, name: "Pishori Rice (5kg)", class: "Groceries", type: "Grains & Flour", price: 1100, seller: "Mwea Direct", image: "https://images.unsplash.com/photo-1586201375761-83865001e31c?w=500&q=80" }
+    ];
+    const savedProducts = localStorage.getItem("sokovibe_products");
+    if (savedProducts) {
+      products = JSON.parse(savedProducts);
+    }
+    let selectedClass = "All";
+    let selectedType = "All";
+    let cart = [];
+
+    // INITIALIZE APP
+    function init() {
+      renderClassPills();
+      renderTypePills();
+      renderProducts();
+      populateSellerForm();
+    }
+
+    // RENDER CLASS FILTERS
+    function renderClassPills() {
+      const container = document.getElementById("classPills");
+      const allClasses = ["All", ...Object.keys(categories)];
+      container.innerHTML = allClasses.map(cls => `
+        <button class="pill ${selectedClass === cls ? 'active' : ''}" onclick="selectClass('${cls}')">${cls}</button>
+      `).join("");
+    }
+
+    // RENDER TYPE FILTERS BASED ON SELECTED CLASS
+    function renderTypePills() {
+      const container = document.getElementById("typePills");
+      let types = ["All"];
+      if (selectedClass !== "All" && categories[selectedClass]) {
+        types = ["All", ...categories[selectedClass]];
+      } else {
+        Object.values(categories).forEach(arr => types.push(...arr));
+      }
+      container.innerHTML = types.map(tp => `
+        <button class="pill type-pill ${selectedType === tp ? 'active' : ''}" onclick="selectType('${tp}')">${tp}</button>
+      `).join("");
+    }
+
+    function selectClass(cls) {
+      selectedClass = cls;
+      selectedType = "All";
+      renderClassPills();
+      renderTypePills();
+      renderProducts();
+    }
+
+    function selectType(tp) {
+      selectedType = tp;
+      renderTypePills();
+      renderProducts();
+    }
+
+    // RENDER FILTERED PRODUCTS
+    function renderProducts() {
+      const grid = document.getElementById("productGrid");
+      const query = document.getElementById("searchInput").value.toLowerCase();
+
+      const filtered = products.filter(p => {
+        const pClass = (p.class || "").trim().toLowerCase();
+        const pType = (p.type || "").trim().toLowerCase();
+        const matchClass = selectedClass === "All" || pClass === selectedClass.trim().toLowerCase();
+        const matchType = selectedType === "All" || pType === selectedType.trim().toLowerCase();
+        const matchSearch = (p.name || "").toLowerCase().includes(query) ||
+                            (p.seller || "").toLowerCase().includes(query) ||
+                            pClass.includes(query) ||
+                            pType.includes(query);
+        return matchClass && matchType && matchSearch;
+      });
+if (filtered.length === 0) {
+        grid.innerHTML = `
+          <div style="color:var(--muted);">
+            <p style="margin-bottom:0.5rem;">No products found in <strong>${selectedClass}</strong>${selectedType !== "All" ? " > <strong>" + selectedType + "</strong>" : ""} yet.</p>
+            <button class="btn" style="border:1px solid var(--border); background:#fff;" onclick="resetDemoData()">Restore Starter Products</button>
+          </div>
+        `;
+        return;
+      }
+
+      grid.innerHTML = filtered.map(p => `
+        <div class="card">
+          <div class="card-img"><img src="${p.image}" alt="${p.name}" /></div>
+          <div class="card-body">
+            <div class="badges">
+              <span class="badge">${p.class}</span>
+              <span class="badge">${p.type}</span>
+            </div>
+            <div class="card-title">${p.name}</div>
+            <div class="seller-tag">Sold by: <strong>${p.seller}</strong></div>
+            <div class="price">KES ${p.price.toLocaleString()}</div>
+            <button class="btn btn-primary" onclick="addToCart(${p.id})">Add to Cart</button>
+          </div>
+        </div>
+      `).join("");
+    }
+function resetDemoData() {
+      localStorage.removeItem("sokovibe_products");
+      location.reload();
+    }
+    // SWITCH BETWEEN BUYER & SELLER VIEWS
+    function switchView(view) {
+      document.getElementById("buyerView").classList.toggle("hidden", view !== "buyer");
+      document.getElementById("sellerView").classList.toggle("hidden", view !== "seller");
+      document.getElementById("btnBuyerView").classList.toggle("active", view === "buyer");
+      document.getElementById("btnSellerView").classList.toggle("active", view === "seller");
+    }
+
+    // SELLER FORM DROPDOWNS
+    function populateSellerForm() {
+      const classSelect = document.getElementById("pClass");
+      classSelect.innerHTML = Object.keys(categories).map(c => `<option value="${c}">${c}</option>`).join("");
+      populateFormTypes();
+    }
+
+    function populateFormTypes() {
+      const chosenClass = document.getElementById("pClass").value;
+      const typeSelect = document.getElementById("pType");
+      typeSelect.innerHTML = categories[chosenClass].map(t => `<option value="${t}">${t}</option>`).join("");
+    }
+
+// ADD NEW SELLER PRODUCT WITH REAL PHOTO UPLOAD
+    function addProduct(e) {
+      e.preventDefault();
+      const fileInput = document.getElementById("pImageFile");
+      const file = fileInput.files[0];
+      if (!file) return alert("Please select a product photo.");
+
+      const reader = new FileReader();
+      reader.onload = function(event) {
+        const newProd = {
+          id: Date.now(),
+          seller: document.getElementById("pSeller").value,
+          phone: document.getElementById("pPhone").value.replace(/\D/g, ""),
+          name: document.getElementById("pName").value,
+          class: document.getElementById("pClass").value,
+          type: document.getElementById("pType").value,
+          price: Number(document.getElementById("pPrice").value),
+          image: event.target.result
+        };
+        products.unshift(newProd);
+        localStorage.setItem("sokovibe_products", JSON.stringify(products));
+        e.target.reset();
+        populateFormTypes();
+        switchView("buyer");
+        selectClass(newProd.class);
+        alert("Product with photo listed live on SokoVibe!");
+      };
+      reader.readAsDataURL(file);
+    }
+
+    // CART FUNCTIONS
+    function addToCart(id) {
+      const item = products.find(p => p.id === id);
+      cart.push(item);
+      updateCartUI();
+    }
+
+    function removeFromCart(index) {
+      cart.splice(index, 1);
+      updateCartUI();
+    }
+
+    function updateCartUI() {
+      document.getElementById("cartCount").innerText = cart.length;
+      const container = document.getElementById("cartItems");
+      let total = 0;
+
+      if (cart.length === 0) {
+        container.innerHTML = `<p style="color:var(--muted);">Your cart is empty.</p>`;
+      } else {
+        container.innerHTML = cart.map((item, idx) => {
+          total += item.price;
+          return `
+            <div class="cart-item">
+              <div>
+                <strong>${item.name}</strong><br/>
+                <small style="color:var(--muted);">Seller: ${item.seller} • KES ${item.price.toLocaleString()}</small>
+              </div>
+              <button class="btn" style="color:red;" onclick="removeFromCart(${idx})">✕</button>
+            </div>
+          `;
+        }).join("");
+      }
+      document.getElementById("cartTotal").innerText = `KES ${total.toLocaleString()}`;
+    }
+
+    function toggleCart(show) {
+      document.getElementById("cartModal").classList.toggle("hidden", !show);
+    }
+
+    function checkout() {
+      if (cart.length === 0) return alert("Add items to your cart first!");
+
+      const bName = document.getElementById("buyerName").value.trim();
+      const bPhone = document.getElementById("buyerPhone").value.trim();
+      const bLoc = document.getElementById("buyerLocation").value.trim();
+
+      if (!bName || !bPhone || !bLoc) {
+        return alert("Please enter your Name, Phone Number, and Delivery Location.");
+      }
+
+      // Group cart items by seller so each seller gets their own order message
+      const ordersBySeller = {};
+      cart.forEach(item => {
+        const key = item.seller;
+        if (!ordersBySeller[key]) {
+          ordersBySeller[key] = { phone: item.phone || "254719443262", items: [], subtotal: 0 };
+        }
+        ordersBySeller[key].items.push(item);
+        ordersBySeller[key].subtotal += item.price;
+      });
+
+      const linksBox = document.getElementById("sellerOrderLinks");
+      let html = `<p style="font-size:0.85rem; color:var(--primary); font-weight:700; margin-bottom:0.5rem;">✓ Order Ready! Tap below to notify each seller on WhatsApp:</p>`;
+
+      Object.keys(ordersBySeller).forEach(sellerName => {
+        const group = ordersBySeller[sellerName];
+        const itemList = group.items.map(i => `- ${i.name} (KES ${i.price.toLocaleString()})`).join("%0A");
+        const msg = `Hello *${sellerName}*, new order from *SokoVibe*!%0A%0A*Items:*%0A${itemList}%0A*Total:* KES ${group.subtotal.toLocaleString()}%0A%0A*Buyer:* ${encodeURIComponent(bName)}%0A*Phone:* ${encodeURIComponent(bPhone)}%0A*Location:* ${encodeURIComponent(bLoc)}`;
+        const waUrl = `https://wa.me/${group.phone}?text=${msg}`;
+
+        html += `
+          <a href="${waUrl}" target="_blank" class="btn btn-primary" style="display:block; text-align:center; text-decoration:none; margin-bottom:0.5rem; background:#16a34a;">
+            Send Order to ${sellerName} (KES ${group.subtotal.toLocaleString()})
+          </a>
+        `;
+      });
+
+      html += `<button class="btn" style="width:100%; border:1px solid var(--border); margin-top:0.25rem;" onclick="finishOrder()">Done / Clear Basket</button>`;
+
+      document.getElementById("checkoutForm").classList.add("hidden");
+      linksBox.innerHTML = html;
+      linksBox.classList.remove("hidden");
+    }
+
+    function finishOrder() {
+      cart = [];
+      updateCartUI();
+      document.getElementById("sellerOrderLinks").classList.add("hidden");
+      document.getElementById("checkoutForm").classList.remove("hidden");
+      toggleCart(false);
+    }
+
+    init();
+  </script>
+</body>
+</html>
